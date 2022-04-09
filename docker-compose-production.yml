@@ -26,3 +26,9 @@ services:
     api-php-fpm:
         image: ${REGISTRY}/finance-api-php-fpm:${IMAGE_TAG}
         restart: always
+        environment:
+            APP_ENV: prod
+            APP_DEBUG: 0
+
+    api-php-cli:
+        image: ${REGISTRY}/finance-api-cli-fpm:${IMAGE_TAG}

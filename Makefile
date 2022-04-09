@@ -1,7 +1,9 @@
-init: docker-clear docker-pull docker-build docker-up
+init: docker-clear docker-pull docker-build docker-up api-init
 start: docker-up
 stop: docker-down
 restart: stop start
+
+# Development docker images
 
 docker-up:
 	docker-compose up -d
@@ -18,6 +20,8 @@ docker-pull:
 docker-clear:
 	docker-compose down -v --remove-orphans
 
+# Build docker production images
+
 build: build-gateway build-frontend build-api
 
 build-gateway:
@@ -28,10 +32,13 @@ build-frontend:
 
 build-api:
 	docker --log-level=debug build --pull --file=api/docker/production/php-fpm/Dockerfile --tag=${REGISTRY}/finance-api-php-fpm:${IMAGE_TAG} api
+	docker --log-level=debug build --pull --file=api/docker/production/php-cli/Dockerfile --tag=${REGISTRY}/finance-api-php-cli:${IMAGE_TAG} api
 	docker --log-level=debug build --pull --file=api/docker/production/nginx/Dockerfile --tag=${REGISTRY}/finance-api:${IMAGE_TAG} api
 
 try-build:
 	REGISTRY=localhost IMAGE_TAG=0 make build
+
+# Push docker images
 
 push: push-gateway push-frontend push-api
 
@@ -43,4 +50,12 @@ push-frontend:
 
 push-api:
 	docker push ${REGISTRY}/finance-api-php-fpm:${IMAGE_TAG}
+	docker push ${REGISTRY}/finance-api-php-cli:${IMAGE_TAG}
 	docker push ${REGISTRY}/finance-api:${IMAGE_TAG}
+
+# Initial api
+
+api-init: api-composer-install
+
+api-composer-install:
+	docker-compose run --rm api-php-cli composer install
